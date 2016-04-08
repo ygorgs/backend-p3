@@ -27,14 +27,24 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     variable_end_string = ')}'
 )
 
-#NDB Model
+#NDB Models
+class Comment(ndb.Model):
+	bookid = ndb.StringProperty()
+	name = ndb.StringProperty()
+	text = ndb.StringProperty()
+
+	def to_dict(self, URLBASE=""):
+		data = super(Comment, self).to_dict()
+		data["url"] = "%s/book/%s/comment" % (URLBASE, self.bookid)
+
 class Book(ndb.Model):
 	bookid = ndb.StringProperty()
 	title = ndb.StringProperty()
-	autors = ndb.StringProperty()
-	description = ndb.StringProperty(default="sem descrição.")
+	autors = ndb.StringProperty(repeated=True)
+	description = ndb.TextProperty(default="sem descrição.")
 	imageUrl = ndb.StringProperty()
-	price = ndb.StringProperty()
+	price = ndb.FloatProperty()
+	comments = ndb.StructuredProperty(Comment)
 
 	def to_dict(self, URLBASE=""):
 		data = super(Book, self).to_dict()
@@ -86,7 +96,7 @@ class BooksCollectionHandler(webapp2.RequestHandler):
 	#POST /book
 	def post(self):
 			book_data = json.loads(self.request.body)
-			bookid = message_data.get('id')
+			bookid = book_data.get('id')
 			if(bookid is None):
 				self.response.set_status(400)
 				self.response.write('{"msg":"Campo obrigatório \'bookid\' não encontrado.", "error":400, "datetime":"%s"}' % (datetime.datetime.now().isoformat()))
@@ -123,13 +133,13 @@ class BookHandler(webapp2.RequestHandler):
            	return
 
 		URLBASE = self.request.host_url
-		self.response.write(data2json(message.to_dict(URLBASE)).encode('utf-8'))
+		self.response.write(data2json(book.to_dict(URLBASE)).encode('utf-8'))
 
 	#PUT /book/:bookid
 	def put(self, bookid):
 		book = Book.get_by_id(bookid)
 		if(book == None):
-			message = Book(id=bookid)
+			book = Book(id=bookid)
 
 		data = json.loads(self.request.body)
 		book.bookid = bookid
@@ -140,11 +150,38 @@ class BookHandler(webapp2.RequestHandler):
 		book.price = data['price']
 		book.put()
 
-		self.response.write(data2json(message.to_dict()).encode('utf-8'))
+		self.response.write(data2json(book.to_dict()).encode('utf-8'))
+
+class CommentHandler(webapp2.RequestHandler):
+
+	#GET /book/:bookid/comment
+	def get(self, bookid):
+		book = Book.get_by_id(bookid)
+		if(book is None):
+			self.response.set_status(400)
+			self.response.write('{"msg":"Livro \'%s\' não encontrado", "error":404, "datetime":"%s"}' % (bookid, datetime.datetime.now().isoformat()))
+           	return
+
+		comments = book.get('comments')
+		URLBASE = self.request.host_url
+		self.response.write(data2json(comments.to_dict(URLBASE)).encode('utf-8'))
+
+	#POST /book/:bookid/comment
+	def post(self):
+		comment_data = json.loads(self.request.body)
+		bookid = comment_data.get('id')
+		book = Book.get_by_id(bookid)
+
+		data = json.loads(self.request.body)
+		book.comments += data['comment']
+
+		self.response.write(data2json(book.get('comments').to_dict()).encode('utf-8'))
+
 
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/book', BooksCollectionHandler),
     ('/book/(.*)', BookHandler),
+    ('/book/(.*)/comment', CommentHandler),
 ], debug=True)

@@ -5,9 +5,47 @@
 	<title>Livraria - P3</title>
 </head>
 <body>
-	<h3>
-		Livraria - Programação 3
-	</h3>	
+	<h1>Livraria - Programação 3</h1>
+	<p> Recursos da API</p>
+
+	<ul>
+		<li>Livros</li>
+		<li>Comentários</li>
+	</ul>	
+	<hr>
+	<div id="book">
+		<h2>Livro</h2>
+		<p>A representação de um livro</p>
+		<h3>GET /book</h3>
+		<p>Retorna uma lista com todos os livros cadastrados.</p>
+		<h3>POST /book</h3>
+		<p>Cadastra um novo livro com os seguintes campos:</p>
+		<ul>
+			<li>title: Título do livro;</li>
+			<li>authors: Lista com o(s) autor(es) do livro;</li>
+			<li>description: Descrição do livro;</li>
+			<li>price: Preço do livro;</li>
+			<li>imageUrl: Url da imagem da capa do livro.</li>
+		</ul>	
+		<h3>GET /book/:id</h3>
+		<p>Retorna o livro com o ID especificado.</p>
+		<h3>PUT /book/:id</h3>
+		<p>Substitui um livro existente que possui o ID especificado.</p>
+	</div>
+	<hr>
+	<div id="comments">
+		<h2>Comentários</h2>
+		<p>A representação de um comentário dado a um determinado livro.</p>
+		<h3>GET /book/:idBook/comment</h3>
+		<p>Retorna uma lista de comentário associada ao livro com o ID especificado.</p>
+		<h3>POST /book/:idBook/comment</h3>
+		<p>Adiciona um novo comentário ao livro indicado através de seu ID. O comentário deve possuír os seguintes atributos:</p>
+		<ul>
+			<li>bookid: ID do livro que esse comentário faz referência;</li>
+			<li>name: Nome da pessoa responsável pelo comentário;</li>
+			<li>text: Texto do comentário.</li>
+		</ul>
+	</div>
 
 </body>
 </html>

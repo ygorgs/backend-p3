@@ -29,6 +29,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 #NDB Models
 class Comment(ndb.Model):
+	commentid = ndb.StringProperty()
 	bookid = ndb.StringProperty()
 	name = ndb.StringProperty()
 	text = ndb.StringProperty()
@@ -40,7 +41,7 @@ class Comment(ndb.Model):
 class Book(ndb.Model):
 	bookid = ndb.StringProperty()
 	title = ndb.StringProperty()
-	autors = ndb.StringProperty(repeated=True)
+	authors = ndb.StringProperty(repeated=True)
 	description = ndb.TextProperty(default="sem descrição.")
 	imageUrl = ndb.StringProperty()
 	price = ndb.FloatProperty()
@@ -106,7 +107,7 @@ class BooksCollectionHandler(webapp2.RequestHandler):
 			book = Book(id=bookid)
 			book.bookid = bookid
 			book.title = book_data.get('title')
-			book.autors = book_data.get('autors')
+			book.authors = book_data.get('authors')
 			book.description = book_data.get('description')
 			book.imageUrl = book_data.get('imageUrl')
 			book.price = book_data.get('price')
@@ -144,7 +145,7 @@ class BookHandler(webapp2.RequestHandler):
 		data = json.loads(self.request.body)
 		book.bookid = bookid
 		book.title = data['title']
-		book.autors = data['autors']
+		book.authors = data['authors']
 		book.description = data['description']
 		book.imageUrl = data['imageUrl']
 		book.price = data['price']
@@ -169,11 +170,20 @@ class CommentHandler(webapp2.RequestHandler):
 	#POST /book/:bookid/comment
 	def post(self):
 		comment_data = json.loads(self.request.body)
-		bookid = comment_data.get('id')
+		commentid = comment_data.get('id')
 		book = Book.get_by_id(bookid)
 
 		data = json.loads(self.request.body)
-		book.comments += data['comment']
+		comment = Comment(id=bookid)
+		comment.name = comment_data.get('name')
+		comment.text = comment_data.get('text')
+		comment.bookid = comment_data.get('bookid')
+		comment.commentid = commentid
+		comment.put()
+
+		book = Book.get_by_id(comment.bookid)
+		book.comments += Comment
+		book.put
 
 		self.response.write(data2json(book.get('comments').to_dict()).encode('utf-8'))
 
